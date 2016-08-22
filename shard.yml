@@ -5,6 +5,8 @@ dependencies:
   redis-cluster:
     github: maiha/redis-cluster.cr
     version: 0.5.2
+  toml:
+    github: manastech/crystal-toml
 
 authors:
   - maiha <maiha@wota.jp>

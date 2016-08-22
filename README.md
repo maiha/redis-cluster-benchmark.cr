@@ -1,26 +1,29 @@
 # redis-cluster-benchmark
 
-TODO: Write a description here
-
-## Installation
-
-
-TODO: Write installation instructions here
-
+Benchmark utils for Redis Cluster that is inspired by `redis-benchmark`.
 
 ## Usage
 
+#### config : bench.toml
 
+```toml
+[redis]
+clusters = "127.0.0.1:7001,127.0.0.1:7002"  # at least one node
 
-TODO: Write usage instructions here
+[bench]
+requests = 10000
+tests = "set __rand_int__ __rand_int__"
+```
 
-## Development
+#### run
 
-TODO: Write development instructions here
+```shell
+% redis-cluster-benchmark bench.toml
+```
 
 ## Contributing
 
-1. Fork it ( https://github.com/[your-github-name]/redis-cluster-benchmark/fork )
+1. Fork it ( https://github.com/maiha/redis-cluster-benchmark/fork )
 2. Create your feature branch (git checkout -b my-new-feature)
 3. Commit your changes (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)
@@ -28,4 +31,4 @@ TODO: Write development instructions here
 
 ## Contributors
 
-- [[your-github-name]](https://github.com/[your-github-name]) maiha - creator, maintainer
+- [maiha](https://github.com/maiha) maiha - creator, maintainer
