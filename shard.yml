@@ -1,0 +1,12 @@
+name: redis-cluster-benchmark
+version: 0.1.0
+
+dependencies:
+  redis-cluster:
+    github: maiha/redis-cluster.cr
+    version: 0.5.2
+
+authors:
+  - maiha <maiha@wota.jp>
+
+license: MIT
