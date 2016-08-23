@@ -1,5 +1,5 @@
 name: redis-cluster-benchmark
-version: 0.1.0
+version: 0.2.0
 
 dependencies:
   redis-cluster:
@@ -7,6 +7,7 @@ dependencies:
     version: 0.5.2
   toml:
     github: manastech/crystal-toml
+    version: 0.4.0
 
 authors:
   - maiha <maiha@wota.jp>

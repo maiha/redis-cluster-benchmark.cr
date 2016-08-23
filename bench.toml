@@ -6,7 +6,7 @@ clusters = "127.0.0.1:7001,127.0.0.1:7002"
 requests = 100000  # number of requests for each commands
 keyspace = 10000   # max number of key for `__rand_int__`
 tests = "set __rand_int__ __rand_int__"
-qps = 1000
+qps = 5000
 # debug = true
 
 [report]
