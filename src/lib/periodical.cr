@@ -1,6 +1,8 @@
+require "colorize"
+
 module Periodical
   class Reporter
-    delegate report, done, to: @impl
+    delegate ok!, ko!, done, to: @impl
 
 #    def initialize(@interval : Time::Span, total : (Int32 | Nil -> Int32), enable : Bool = true)
 #      @total = total.is_a?(Nil -> Int32) ? total.call : total
@@ -9,50 +11,100 @@ module Periodical
     end
   end
 
-  class Nop
-    def report(i : Int32)
+  class StatusCounter
+    property offset, count, index, ok, ko, color
+
+    def initialize(@total : Int32, @index : Int32 = 0, @ok : Int32 = 0, @ko : Int32 = 0, @color : Bool = true)
+      @started_at = Time.now
+      @count = 0
+    end
+
+    def next
+      StatusCounter.new(@total, @index)
+    end
+
+    def ok!
+      @index += 1
+      @count += 1
+      @ok += 1
+    end
+    
+    def ko!
+      @index += 1
+      @count += 1
+      @ko += 1
+    end
+    
+    def took(now = Time.now)
+      now - @started_at
+    end
+
+    def sec
+      took.total_seconds
+    end
+
+    def qps
+      qps = count*1000.0 / took.total_milliseconds
+      return "%.1f" % qps
+    rescue
+      return "---"
+    end
+
+    def progress
+      time  = Time.now.to_s("%H:%M:%S")
+      pcent = [@index * 100.0 / @total, 100.0].min
+      err   = ko > 0 ? "# KO: #{ko}" : ""
+      msg   = "%s [%03.1f%%] %d/%d (%s) %s" % [time, pcent, @index, @total, qps, err]
+      colorize(msg)
+    end
+
+    private def colorize(msg)
+      if ko > 0
+        msg.colorize.yellow
+      else
+        msg
+      end
     end
 
     def done
+      @index = @total
+      time = Time.now.to_s("%H:%M:%S")
+      "%s done %d in %.1f sec (%s)" % [time, @total, sec, qps]
+    end
+  end
+  
+  class Nop
+    macro method_missing(call)
     end
   end
 
   class Impl
-    def initialize(@interval : Time::Span, @total : Int32, @io : IO)
-      @started_at = @reported_at = Time.now
-      @report_count = 0
-      @last_count = 0
-      raise "#{self.class} expects @total > 0, bot got #{@total}" unless @total > 0
+    def initialize(@interval : Time::Span, @goal : Int32, @io : IO)
+      @whole   = StatusCounter.new(@goal)
+      @current = StatusCounter.new(@goal)
+      raise "#{self.class} expects @goal > 0, bot got #{@goal}" unless @goal > 0
     end
 
-    def report(cnt : Int32)
-      now = Time.now
-      return if now < @reported_at + @interval
-      pcent = [cnt * 100.0 / @total, 100.0].min
-      time = now.to_s("%H:%M:%S")
-      qps = qps_string(cnt - @last_count, now - @reported_at)
+    def ok!
+      @current.ok!
+      report
+    end
 
-      @io.puts "%s [%03.1f%%] %d/%d (%s)" % [time, pcent, cnt, @total, qps]
-      @io.flush
-      @last_count = cnt
-      @reported_at = now
-      @report_count += 1
+    def ko!
+      @current.ko!
+      report
+    end
+
+    def report
+      if @current.took > @interval
+        @io.puts @current.progress
+        @io.flush
+        @current = @current.next
+      end
     end
 
     def done
-      now  = Time.now
-      took = now - @started_at
-      qps  = qps_string(@total, took)
-      sec  = took.total_seconds
-      time = now.to_s("%H:%M:%S")
-      @io.puts "%s done %d in %.1f sec (%s)" % [time, @total, sec, qps]
-    end
-
-    private def qps_string(count, took : Time::Span)
-      qps = count*1000.0 / took.total_milliseconds
-      return "%.1f qps" % qps
-    rescue
-      return "--- qps"
+      @io.puts @whole.done
     end
   end
 end

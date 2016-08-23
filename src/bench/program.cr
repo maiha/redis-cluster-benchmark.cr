@@ -25,8 +25,7 @@ class Bench::Program
       stat = Stats::Stat.new
       
       @requests.times do |i|
-        execute(client, cmd, stat)
-        reporter.report(i)
+        execute(client, cmd, stat, reporter)
       end
       reporter.done
       Stats::Reporter.new(cmd, stat, io: io, verbose: @verbose).report
@@ -37,10 +36,12 @@ class Bench::Program
       io << str
   end
 
-  private def execute(client, cmd, stat, t1 = Time.now)
+  private def execute(client, cmd, stat, reporter, t1 = Time.now)
     client.command(cmd.feed)
     stat.ok!(Time.now - t1)
+    reporter.ok!
   rescue err
     stat.ko!(Time.now - t1, err)
+    reporter.ko!
   end
 end

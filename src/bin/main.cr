@@ -14,7 +14,7 @@ class Main
   def run
     toml = TOML.parse_file(args.shift { die "config not found!" })
     conf = Bench::Config.new(toml)
-    conf.merge!(verbose: verbose)
+    conf.merge!(verbose: verbose) if verbose
     conf.dump_on_error = true
 
     Bench::Program.new(conf).run
