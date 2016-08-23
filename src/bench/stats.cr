@@ -39,7 +39,7 @@ class Bench::Stats
     end
 
     private def report_stat_detail
-      @io << "#{@cmd.name.upcase}: #{@stat.rps} rps (ok: #{@stat.ok}, ko: #{@stat.ko})\n"
+      @io << "#{@cmd.name.upcase}: #{@stat.rps} rps (OK: #{@stat.ok}, KO: #{@stat.ko})\n"
       @stat.errors.each do |err|
         @io << "  #{err}"
       end
@@ -47,7 +47,7 @@ class Bench::Stats
 
     private def report_stat_simple
       err = @stat.errors.any? ? "(#{@stat.errors.first(3).inspect})" : ""
-      @io << "#{@cmd.name.upcase}: #{@stat.rps} rps (ok: #{@stat.ok}, ko: #{@stat.ko})#{err}\n"
+      @io << "#{@cmd.name.upcase}: #{@stat.rps} rps (OK: #{@stat.ok}, KO: #{@stat.ko})#{err}\n"
     end
   end
 end

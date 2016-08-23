@@ -54,7 +54,7 @@ module Periodical
       time  = Time.now.to_s("%H:%M:%S")
       pcent = [@index * 100.0 / @total, 100.0].min
       err   = ko > 0 ? "# KO: #{ko}" : ""
-      msg   = "%s [%03.1f%%] %d/%d (%s) %s" % [time, pcent, @index, @total, qps, err]
+      msg   = "%s [%03.1f%%] %d/%d (%s qps) %s" % [time, pcent, @index, @total, qps, err]
       colorize(msg)
     end
 

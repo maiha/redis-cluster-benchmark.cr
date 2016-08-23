@@ -1,16 +1,19 @@
 class Bench::Program
   @commands : Array(Bench::Commands::Command)
+  @limitter : Bench::Limitter?
 
   def initialize(@config : Config)
-    @clusters = @config["redis/clusters"].as(String)
-    @password = @config["redis/password"].as(String?)
-    @requests = @config["bench/requests"].as(Int64).to_i32.as(Int32)
-    @keyspace = @config["bench/keyspace"].as(Int64?)
-    @interval = @config["report/interval_sec"].as(Int64?)
-    @verbose  = @config["report/verbose"].as(Bool)
-    @commands = Commands.parse(@config["bench/tests"].as(String), @keyspace)
-    @stats = [] of Stats
-    raise "tests not found" if @commands.empty?
+    @clusters = @config.str("redis/clusters").as(String)
+    @password = @config.str?("redis/password").as(String?)
+    @requests = @config.int("bench/requests").as(Int32)
+    @keyspace = @config.int?("bench/keyspace").as(Int32?)
+    @interval = @config.int?("report/interval_sec").as(Int32?)
+    @verbose  = @config.bool("report/verbose").as(Bool)
+
+    @commands = Commands.parse(@config.str("bench/tests").as(String), @keyspace)
+    raise "No tests in `bench/tests`" if @commands.empty?
+
+    @limitter = @config.int?("bench/qps").try{|qps| Limitter.new(qps: qps, verbose: @config.bool("bench/debug")) }
   end
 
   def run
@@ -26,6 +29,7 @@ class Bench::Program
       
       @requests.times do |i|
         execute(client, cmd, stat, reporter)
+        pause_for_next
       end
       reporter.done
       Stats::Reporter.new(cmd, stat, io: io, verbose: @verbose).report
@@ -43,5 +47,9 @@ class Bench::Program
   rescue err
     stat.ko!(Time.now - t1, err)
     reporter.ko!
+  end
+
+  private def pause_for_next
+    @limitter.try(&.await)
   end
 end

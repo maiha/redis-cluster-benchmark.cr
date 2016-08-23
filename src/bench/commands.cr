@@ -23,7 +23,7 @@ module Bench::Commands
     end
   end
 
-  record DynamicCommand, raws : Array(String), keyspace : Int64? do
+  record DynamicCommand, raws : Array(String), keyspace : Int32? do
     include Core
 
     def feed : Array(String)
@@ -31,7 +31,7 @@ module Bench::Commands
     end
 
     private def rand_int
-      rand(keyspace || UInt64::MAX / 2)
+      rand(keyspace || UInt32::MAX / 2)
     end
   end
 
