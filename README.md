@@ -25,7 +25,7 @@ qps = 5000
 
 [report]
 interval_sec = 3
-# verbose = true
+verbose = true
 ```
 
 #### run
