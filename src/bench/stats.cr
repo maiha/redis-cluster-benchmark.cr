@@ -25,43 +25,29 @@ class Bench::Stats
       @errors << (err.message || err.class.name).to_s
     end
   end
-    
-  def initialize(commands : Array(Command))
-    @stats = Hash(Command, Stat).new
-    commands.each do |cmd|
-      @stats[cmd] = Stat.new
+
+  class Reporter
+    def initialize(@cmd : Command, @stat : Stat, @io : IO = STDOUT)
     end
-  end
 
-  def ok(cmd, span)
-    @stats[cmd].ok!(span)
-  end
-
-  def ko(cmd, span, err)
-    @stats[cmd].ko!(span, err)
-  end
-
-  def report(io : IO, verbose : Bool = true)
-    @stats.each do |(cmd, stat)|
+    def report(verbose : Bool = true)
       if verbose
-        report_stat_detail(io, cmd, stat)
+        report_stat_detail
       else
-        report_stat_simple(io, cmd, stat)
+        report_stat_simple
       end
     end
-  end
 
-  private def report_stat_detail(io, cmd, stat)
-    io << "#{cmd.name.upcase}: #{stat.rps} (#{stat.total})\n"
-    io << "  OK: #{stat.ok} (#{stat.span})\n"
-    io << "  KO: #{stat.ko}\n"
-    stat.errors.each do |err|
-      io << "  #{err}"
+    private def report_stat_detail
+      @io << "#{@cmd.name.upcase}: #{@stat.rps} rps (ok: #{@stat.ok}, ko: #{@stat.ko})\n"
+      @stat.errors.each do |err|
+        @io << "  #{err}"
+      end
     end
-  end
 
-  private def report_stat_simple(io, cmd, stat)
-    err = stat.errors.any? ? "(#{stat.errors.first(3).inspect})" : ""
-    io << "#{cmd.name.upcase}: #{stat.rps} rps (ok: #{stat.ok}, ko: #{stat.ko})#{err}\n"
+    private def report_stat_simple
+      err = @stat.errors.any? ? "(#{@stat.errors.first(3).inspect})" : ""
+      @io << "#{@cmd.name.upcase}: #{@stat.rps} rps (ok: #{@stat.ok}, ko: #{@stat.ko})#{err}\n"
+    end
   end
 end

@@ -4,7 +4,9 @@ Benchmark utils for Redis Cluster that is inspired by `redis-benchmark`.
 
 ## Usage
 
-#### config : bench.toml
+#### config
+
+- See: `bench.toml`
 
 ```toml
 [redis]
@@ -13,6 +15,9 @@ clusters = "127.0.0.1:7001,127.0.0.1:7002"  # at least one node
 [bench]
 requests = 10000
 tests = "set __rand_int__ __rand_int__"
+
+[report]
+interval_sec = 3
 ```
 
 #### run

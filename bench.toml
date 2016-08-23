@@ -6,3 +6,6 @@ clusters = "127.0.0.1:7001,127.0.0.1:7002"
 requests = 10000
 # keyspace = 10000
 tests = "set __rand_int__ __rand_int__"
+
+[report]
+interval_sec = 3

@@ -1,12 +1,22 @@
 module Bench::Commands
   alias Command = DynamicCommand | StaticCommand
+  module Core
+    protected abstract def raws : Array(String)
+    protected abstract def feed : Array(String)
+
+    def name
+      raws.first
+    end
+
+    def to_s(io : IO)
+      io << raws.join(" ")
+    end
+  end
 
   RAND_INT = "__rand_int__"
   
   record StaticCommand, raws : Array(String) do
-    def name
-      raws.first
-    end
+    include Core
 
     def feed : Array(String)
       raws
@@ -14,18 +24,10 @@ module Bench::Commands
   end
 
   record DynamicCommand, raws : Array(String), keyspace : Int64? do
-    def name
-      raws.first
-    end
-
-    def args
-      raws[1..-1].map{|s|
-        s.gsub(/__rand_int__/) { rand_int }
-      }
-    end
+    include Core
 
     def feed : Array(String)
-      [name] + args
+      [name] + raws[1..-1].map{|s| s.gsub(/__rand_int__/) { rand_int } }
     end
 
     private def rand_int
