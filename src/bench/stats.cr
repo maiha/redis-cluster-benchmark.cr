@@ -27,11 +27,11 @@ class Bench::Stats
   end
 
   class Reporter
-    def initialize(@cmd : Command, @stat : Stat, @io : IO = STDOUT)
+    def initialize(@cmd : Command, @stat : Stat, @io : IO = STDOUT, @verbose : Bool = true)
     end
 
-    def report(verbose : Bool = true)
-      if verbose
+    def report
+      if @verbose
         report_stat_detail
       else
         report_stat_simple

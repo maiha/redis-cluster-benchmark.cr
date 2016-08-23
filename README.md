@@ -18,6 +18,7 @@ tests = "set __rand_int__ __rand_int__"
 
 [report]
 interval_sec = 3
+# verbose = true
 ```
 
 #### run

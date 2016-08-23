@@ -1,24 +1,21 @@
-record Bench::Config,
-  toml : Hash(String, TOML::Type) do
+class Bench::Config < TOML::Path
+  property dump_on_error : Bool = false
 
-  def [](key)
-    config(key)
+  def merge!(verbose : Bool? = false)
+    @paths["report/verbose"] = verbose if ! verbose.nil?
+    return self
   end
 
-  private def config(key)
-    obj = toml
-    path = [] of String
-    key.split("/").each do |k|
-      path << k
-      case obj
-      when Nil
-        raise "config[%s] is not found" % path.join("/")
-      when Hash
-        obj = obj.fetch(k) { nil }
-      else
-        raise "config[%s] is not hash" % path.join("/")
-      end
+  def not_found(key)
+    pretty_dump if dump_on_error
+    raise "toml[%s] is not found" % key
+  end
+
+  private def pretty_dump(io : IO = STDERR)
+    io.puts "[config]"
+    max = @paths.keys.map(&.size).max
+    @paths.each do |(key, val)|
+      io.puts "  %-#{max}s : %s" % [key, val]
     end
-    return obj
   end
 end
