@@ -1,7 +1,8 @@
 require "option_parser"
 require "./macros"
+require "colorize"
 
-module Options
+module Opts
   class OptionError < Exception
   end
 
@@ -19,7 +20,7 @@ module Options
     begin
       @args ||= option_parser.parse(ARGV)
       return @args.not_nil!
-    rescue err : ArgumentError | Options::OptionError | OptionParser::Exception
+    rescue err : ArgumentError | Opts::OptionError | OptionParser::Exception
       die err.to_s
     end
   end
@@ -90,11 +91,35 @@ module Options
     }
   end
 
-  macro usage(str)
-    def usage
-      {{str}}.sub(/^(Options:.*?)$/m){ "#{$1}\n#{new_option_parser}" }
+  macro usage_args(str)
+    protected def usage_args
+      {{str}}
     end
   end
+
+  macro version(str)
+    protected def version
+      {{str}}
+    end
+  end
+
+  macro program(str)
+    protected def program
+      {{str}}
+    end
+  end
+
+  PROGRAM = "#{$0}".split("/").last
+  VERSION = "unknown"
+  ARGS    = ""
+  USAGE   = <<-EOF
+    {{program}} version {{version}}
+
+    Usage: {{program}} {{args}}
+
+    Options:
+    {{options}}
+    EOF
 
   protected def die(reason : String)
     STDERR.puts usage
@@ -103,19 +128,25 @@ module Options
     exit -1
   end
 
-  protected def quit(message : String)
+  protected def exit(message : String)
     STDOUT.puts message
     exit 0
   end
 
-  # broken
-  protected def argf_read : Bytes
-    dst = MemoryIO.new
-
-    begin
-      got = ARGF.gets_to_end
-    rescue IO::EOFError
+  macro included
+    def self.run
+      main = new
+      main.args                        # kick parse!
+      main.exit(main.usage) if main.help
+      main.exit("#{PROGRAM} #{VERSION}") if main.version
+      main.run
+    rescue err
+      STDERR.puts err.to_s.colorize(:red)
+      exit 1
     end
-    dst.to_slice
+
+    def usage
+      USAGE.gsub(/\{{program}}/, PROGRAM).gsub(/\{{version}}/, VERSION).gsub(/\{{args}}/, ARGS).gsub(/\{{options}}/, new_option_parser.to_s)
+    end
   end
 end
