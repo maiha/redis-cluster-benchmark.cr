@@ -6,11 +6,13 @@ class Bench::Program
     @clusters = @config.str("redis/clusters").as(String)
     @password = @config.str?("redis/password").as(String?)
     @requests = @config.int("bench/requests").as(Int32)
-    @keyspace = @config.int?("bench/keyspace").as(Int32?)
+    @keyspace = @config.int?("bench/keyspace").as(Int32?) || UInt32::MAX / 2
     @interval = @config.int?("report/interval_sec").as(Int32?)
     @verbose  = @config.bool("report/verbose").as(Bool)
 
-    @commands = Commands.parse(@config.str("bench/tests").as(String), @keyspace)
+    tests     = @config.str("bench/tests").as(String)
+    @context  = Commands::Context.new(keyspace: @keyspace)
+    @commands = Commands.parse(tests, @context)
     raise "No tests in `bench/tests`" if @commands.empty?
 
     @limitter = @config.int?("bench/qps").try{|qps| Limitter.new(qps: qps, verbose: @config.bool("bench/debug")) }

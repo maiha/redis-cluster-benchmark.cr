@@ -1,7 +1,13 @@
 require "./spec_helper"
 
-private def parse1(str, keyspace = 10000)
-  cmds = Bench::Commands.parse(str, keyspace)
+include Bench::Commands
+
+private def default_context
+  Context.new(keyspace: (UInt32::MAX / 2).to_i32)
+end
+
+private def parse1(str, ctx : Context = default_context)
+  cmds = Bench::Commands.parse(str, ctx)
   cmds.size.should eq(1)
   return cmds.first
 end
@@ -33,10 +39,16 @@ describe Bench::Commands do
     end
 
     it "get __rand_int__ (with keyspace=1)" do
-      cmd = parse1("get __rand_int__", 1)
+      cmd = parse1("get __rand_int__",  Context.new(keyspace: 1))
       10.times do
         cmd.feed.should eq(["get", "0"])
       end
+    end
+
+    it "get __foo__ (with custom mapping)" do
+      custom = {"__foo__" => "XYZ" }
+      cmd = parse1("get __foo__",  Context.new(custom))
+      cmd.feed.should eq(["get", "XYZ"])
     end
   end
 end

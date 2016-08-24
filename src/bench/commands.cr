@@ -1,5 +1,29 @@
 module Bench::Commands
   alias Command = DynamicCommand | StaticCommand
+  alias Mapping = Hash(String, String)
+
+  class Context
+    RAND_INT = "__rand_int__"
+
+    delegate keys, to: @map
+    
+    def initialize(@map : Mapping = Mapping.new, keyspace : Int32? = nil)
+      @map[RAND_INT] = keyspace.to_s if keyspace
+    end
+
+    def apply(s : String)
+      @map.each do |(key, val)|
+        case key
+        when RAND_INT
+          s = s.gsub(RAND_INT) { rand(val.to_i) }
+        else
+          s = s.gsub(key, val.to_s)
+        end
+      end
+      return s
+    end
+  end
+  
   module Core
     protected abstract def raws : Array(String)
     protected abstract def feed : Array(String)
@@ -12,9 +36,7 @@ module Bench::Commands
       io << raws.join(" ")
     end
   end
-
-  RAND_INT = "__rand_int__"
-  
+    
   record StaticCommand, raws : Array(String) do
     include Core
 
@@ -23,23 +45,19 @@ module Bench::Commands
     end
   end
 
-  record DynamicCommand, raws : Array(String), keyspace : Int32? do
+  record DynamicCommand, raws : Array(String), ctx : Context do
     include Core
 
     def feed : Array(String)
-      [name] + raws[1..-1].map{|s| s.gsub(/__rand_int__/) { rand_int } }
-    end
-
-    private def rand_int
-      rand(keyspace || UInt32::MAX / 2)
+      [name] + raws[1..-1].map{|s| ctx.apply(s)}
     end
   end
 
-  def self.parse(str, keyspace)
+  def self.parse(str, ctx : Context)
     str.split(",").map{|s|
       args = s.strip.split(/\s+/)
-      if args.grep(/#{RAND_INT}/).any?
-        DynamicCommand.new(args, keyspace)
+      if str =~ /(#{ctx.keys.join("|")})/
+        DynamicCommand.new(args, ctx)
       else
         StaticCommand.new(args)
       end
