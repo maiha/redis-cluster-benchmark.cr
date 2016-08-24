@@ -72,7 +72,7 @@ after    = "rpush results __result__"
 ## Roadmap
 
 #### 0.3
-- [ ] After Hook
+- [x] After Hook
 
 #### 0.4
 - [ ] Reconnect after errors
