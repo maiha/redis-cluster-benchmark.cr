@@ -11,6 +11,10 @@ module Bench::Commands
       @map[RAND_INT] = keyspace.to_s if keyspace
     end
 
+    def copy(map : Mapping)
+      self.class.new(@map.merge(map))
+    end
+
     def apply(s : String)
       @map.each do |(key, val)|
         case key

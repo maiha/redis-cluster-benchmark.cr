@@ -1,12 +1,15 @@
+require "colorize"
+
 class Bench::Program
   @commands : Array(Bench::Commands::Command)
   @limitter : Bench::Limitter?
+  @io : IO = STDOUT
 
   def initialize(@config : Config)
     @clusters = @config.str("redis/clusters").as(String)
     @password = @config.str?("redis/password").as(String?)
     @requests = @config.int("bench/requests").as(Int32)
-    @keyspace = @config.int?("bench/keyspace").as(Int32?) || UInt32::MAX / 2
+    @keyspace = @config.int?("bench/keyspace").as(Int32?) || (UInt32::MAX / 2).to_i32
     @interval = @config.int?("report/interval_sec").as(Int32?)
     @verbose  = @config.bool("report/verbose").as(Bool)
 
@@ -20,38 +23,44 @@ class Bench::Program
 
   def run
     client = Redis::Cluster.new(@clusters, @password)
-    io = STDOUT
 
     @commands.each do |cmd|
-      if @verbose
-        io.puts "=== #{cmd} ==="
-      end
-      reporter = Periodical::Reporter.new((@interval || 3).to_i32.seconds, @requests.to_i32, enable: @verbose && !!@interval, io: io)
-      stat = Stats::Stat.new
+      verbose "=== #{cmd} ==="
+
+      interval = (@interval || 3).seconds
+      output   = (@verbose && !!@interval) ? @io : nil
+      reporter = Periodical::Reporter.new(interval, @requests, io: output)
       
       @requests.times do |i|
-        execute(client, cmd, stat, reporter)
         pause_for_next
+        reporter.succ { client.command(cmd.feed) }
       end
       reporter.done
-      Stats::Reporter.new(cmd, stat, io: io, verbose: @verbose).report
+      show_summary(cmd, reporter.total)
     end
-  end
-
-  private def report(str : String, io : IO = STDOUT)
-      io << str
-  end
-
-  private def execute(client, cmd, stat, reporter, t1 = Time.now)
-    client.command(cmd.feed)
-    stat.ok!(Time.now - t1)
-    reporter.ok!
-  rescue err
-    stat.ko!(Time.now - t1, err)
-    reporter.ko!
   end
 
   private def pause_for_next
     @limitter.try(&.await)
+  end
+
+  private def verbose(msg)
+    @io.puts msg if @verbose
+  end
+
+  private def show_summary(cmd, stat)
+    name = cmd.name.upcase
+    msg  = "%s: %s (OK: %s, KO: %s)" % [name, stat.qps, stat.ok, stat.ko]
+    msg += " (#{stat.errors.first})" if !@verbose && stat.errors.any?
+
+    msg = msg.colorize.yellow if stat.ko > 0
+    @io.puts msg
+
+    if stat.errors.any?
+      verbose "(ERRORS)"
+      stat.errors.each do |err|
+        verbose "  #{err}".colorize.yellow
+      end
+    end
   end
 end
