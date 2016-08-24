@@ -50,20 +50,40 @@ module Periodical
       colorize(msg)
     end
 
+    def spent_hms
+      h,m,s,_ = spent.to_s.split(/[:\.]/)
+      h = h.to_i
+      m = m.to_i
+      s = s.to_i
+      String.build do |io|
+        io << "#{h}h" if h > 0
+        io << "#{m}m" if m > 0
+        io << "#{s}s" if s > 0
+      end
+    end
+    
+    def summarize
+      String.build do |io|
+        hms  = @started_at.to_s("%H:%M:%S")
+        io << "%s (OK:%s, KO:%s) [%s +%s]" % [qps, ok, ko, hms, spent_hms]
+        io << " # #{errors.first}" if errors.any?
+      end
+    end
+    
     def pct
       [@index * 100.0 / @total, 100.0].min
     end
 
-    def took(now = Time.now)
+    def spent(now = @stopped_at || Time.now)
       now - @started_at
     end
 
     def sec
-      took.total_seconds
+      spent.total_seconds
     end
 
     def qps(now = @stopped_at || Time.now)
-      "%.1f qps" % (@count*1000.0 / (now - @started_at).total_milliseconds)
+      "%.1f qps" % (@count*1000.0 / spent.total_milliseconds)
     rescue
       "--- qps"
     end
@@ -107,7 +127,7 @@ module Periodical
     end
 
     def report
-      if @current.took > @interval
+      if @current.spent > @interval
         @io.try(&.puts @current.status).try(&.flush)
         @current = @current.next
       end

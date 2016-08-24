@@ -19,11 +19,12 @@ class Bench::Program
     raise "No tests in `bench/tests`" if @commands.empty?
 
     @limitter = @config.int?("bench/qps").try{|qps| Limitter.new(qps: qps, verbose: @config.bool("bench/debug")) }
+    @client = Redis::Cluster.new(@clusters, @password)
   end
 
   def run
-    client = Redis::Cluster.new(@clusters, @password)
-
+    results = [] of String
+    
     @commands.each do |cmd|
       verbose "=== #{cmd} ==="
 
@@ -33,11 +34,14 @@ class Bench::Program
       
       @requests.times do |i|
         pause_for_next
-        reporter.succ { client.command(cmd.feed) }
+        reporter.succ { @client.command(cmd.feed) }
       end
       reporter.done
       show_summary(cmd, reporter.total)
+      results << "%s : %s" % [cmd.name.upcase, reporter.total.summarize]
     end
+
+    after(results.join("\n"))
   end
 
   private def pause_for_next
@@ -49,10 +53,7 @@ class Bench::Program
   end
 
   private def show_summary(cmd, stat)
-    name = cmd.name.upcase
-    msg  = "%s: %s (OK: %s, KO: %s)" % [name, stat.qps, stat.ok, stat.ko]
-    msg += " (#{stat.errors.first})" if !@verbose && stat.errors.any?
-
+    msg = "%s: %s" % [cmd.name.upcase, stat.summarize]
     msg = msg.colorize.yellow if stat.ko > 0
     @io.puts msg
 
@@ -60,6 +61,16 @@ class Bench::Program
       verbose "(ERRORS)"
       stat.errors.each do |err|
         verbose "  #{err}".colorize.yellow
+      end
+    end
+  end
+
+  def after(result)
+    @config.str?("bench/after").try do |str|
+      ctx = @context.copy({Commands::Context::RESULT => result})
+      Commands.parse(str, ctx).each do |cmd|
+        verbose "=== [AFTER] #{cmd} ==="
+        @client.command(cmd.feed)
       end
     end
   end

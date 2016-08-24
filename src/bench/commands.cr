@@ -4,6 +4,7 @@ module Bench::Commands
 
   class Context
     RAND_INT = "__rand_int__"
+    RESULT   = "__result__"
 
     delegate keys, to: @map
     
@@ -37,7 +38,7 @@ module Bench::Commands
     end
 
     def to_s(io : IO)
-      io << raws.join(" ")
+      io << ([name.upcase] + raws[1..-1]).join(" ")
     end
   end
     
