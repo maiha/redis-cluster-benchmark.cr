@@ -1,4 +1,4 @@
-# redis-cluster-benchmark
+# redis-cluster-benchmark [![Build Status](https://travis-ci.org/maiha/redis-cluster-benchmark.cr.svg?branch=master)](https://travis-ci.org/maiha/redis-cluster-benchmark.cr)
 
 Benchmark utils for Redis Cluster that is inspired by `redis-benchmark`.
 
