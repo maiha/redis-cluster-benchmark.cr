@@ -64,8 +64,10 @@ module Periodical
     
     def summarize
       String.build do |io|
-        hms  = @started_at.to_s("%H:%M:%S")
-        io << "%s (OK:%s, KO:%s) [%s +%s]" % [qps, ok, ko, hms, spent_hms]
+        hms = @started_at.to_s("%H:%M:%S")
+        t1  = @started_at.epoch
+        t2  = stopped_at.epoch
+        io << "%s (OK:%s, KO:%s) [%s +%s](%d - %d)" % [qps, ok, ko, hms, spent_hms, t1, t2]
         io << " # #{errors.first}" if errors.any?
       end
     end
