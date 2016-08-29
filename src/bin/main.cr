@@ -3,7 +3,7 @@ require "../bench"
 class Main
   include Opts
 
-  VERSION = "0.3.1"
+  VERSION = "0.3.2"
   PROGRAM = "redis-cluster-benchmark"
   ARGS    = "bench.toml"
 
