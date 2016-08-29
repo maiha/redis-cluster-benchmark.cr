@@ -20,12 +20,21 @@ module Bench::Commands
       @map.each do |(key, val)|
         case key
         when RAND_INT
-          s = s.gsub(RAND_INT) { rand(val.to_i) }
+          s = s.gsub(RAND_INT) { rand_int(val.to_i) }
         else
           s = s.gsub(key, val.to_s)
         end
       end
       return s
+    end
+
+    # calculate random number less than num with zero padding
+    private def rand_int(num)
+      # num : 1_000_000
+      # min : 0000000
+      # max : 9999999
+      size = (num - 1).to_s.size
+      "%0#{size}d" % rand(num)
     end
   end
   
