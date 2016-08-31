@@ -93,11 +93,8 @@ SET: 4953.0 qps (OK:999182, KO:818) [11:57:15 +3m21s] # RedisError: OOM command 
 
 ## Roadmap
 
-#### 0.3
-- [x] After Hook
-
 #### 0.4
-- [ ] Reconnect after errors
+- [x] Reconnect after errors
 - [ ] Multi Clients
 
 #### 0.5
