@@ -1,5 +1,5 @@
 require "redis-cluster"
-require "toml"
+require "toml-config"
 require "./ext/*"
 require "./lib/*"
 require "./bench/*"

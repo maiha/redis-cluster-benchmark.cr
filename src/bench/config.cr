@@ -1,4 +1,4 @@
-class Bench::Config < TOML::Path
+class Bench::Config < TOML::Config
   property dump_on_error : Bool = false
 
   def merge!(verbose : Bool? = false)
