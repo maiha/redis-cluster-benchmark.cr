@@ -2,8 +2,21 @@
 
 Benchmark utils for Redis Cluster that is inspired by `redis-benchmark`.
 
-- compiled on crystal-0.18.7
-- binary download: https://github.com/maiha/redis-cluster-benchmark.cr/releases
+## Installation
+
+#### Static Binary is ready for x86 linux
+
+- https://github.com/maiha/redis-cluster-benchmark.cr/releases
+
+#### Compile from source
+
+- crystal-0.19.1 ready
+
+```shell
+% crystal deps  # first time only
+% make
+% cp bin/redis-cluster-benchmark /usr/local/bin/
+```
 
 ## Config
 
