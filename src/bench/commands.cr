@@ -4,6 +4,7 @@ module Bench::Commands
 
   class Context
     RAND_INT = "__rand_int__"
+    EPOCH    = "__epoch__"
     RESULT   = "__result__"
 
     delegate keys, to: @map
@@ -21,6 +22,8 @@ module Bench::Commands
         case key
         when RAND_INT
           s = s.gsub(RAND_INT) { rand_int(val.to_i) }
+        when EPOCH
+          s = s.gsub(EPOCH) { Time.now.epoch.to_s }
         else
           s = s.gsub(key, val.to_s)
         end

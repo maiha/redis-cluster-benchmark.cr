@@ -45,6 +45,12 @@ describe Bench::Commands do
       end
     end
 
+    it "set foo __epoch__" do
+      custom = {"__epoch__" => "" } # value is ignored
+      cmd = parse1("set foo __epoch__",  Context.new(custom))
+      cmd.feed.last.should match(/^\d+$/)
+    end
+
     it "get __foo__ (with custom mapping)" do
       custom = {"__foo__" => "XYZ" }
       cmd = parse1("get __foo__",  Context.new(custom))
