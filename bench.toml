@@ -10,6 +10,7 @@ after    = "set result/last __result__"
 # after    = "rpush results __result__"
 qps      = 5000
 # debug    = true
+# errexit  = true
 
 [report]
 interval_sec = 1

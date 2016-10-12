@@ -10,6 +10,7 @@ class Bench::Program
     @password = @config.str?("redis/password").as(String?)
     @requests = @config.int("bench/requests").as(Int32)
     @keyspace = @config.int?("bench/keyspace").as(Int32?) || (UInt32::MAX / 2).to_i32
+    @errexit  = @config.bool("bench/errexit").as(Bool)
     @interval = @config.int?("report/interval_sec").as(Int32?)
     @verbose  = @config.bool("report/verbose").as(Bool)
 
@@ -34,7 +35,7 @@ class Bench::Program
       
       @requests.times do |i|
         pause_for_next
-        reporter.succ { @client.command(cmd.feed) }
+        reporter.succ { execute(cmd) }
       end
       reporter.done
       show_summary(cmd, reporter.total)
@@ -42,6 +43,19 @@ class Bench::Program
     end
 
     after(results.join("\n"))
+  end
+
+  private def execute(cmd)
+    @client.command(cmd.feed)
+  rescue err
+    if @errexit
+      msg = err.to_s
+      puts @client.bootstraps.inspect.colorize.red
+      puts msg.colorize.red
+      exit -1
+    else
+      raise err
+    end
   end
 
   private def pause_for_next

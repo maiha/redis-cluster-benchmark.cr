@@ -1,7 +1,8 @@
 class Bench::Config < TOML::Config
   property dump_on_error : Bool = false
 
-  def merge!(verbose : Bool? = false)
+  def merge!(verbose : Bool? = nil, errexit : Bool? = nil)
+    @paths["bench/errexit"]  = errexit if ! errexit.nil?
     @paths["report/verbose"] = verbose if ! verbose.nil?
     return self
   end
