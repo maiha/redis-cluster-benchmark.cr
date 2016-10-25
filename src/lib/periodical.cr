@@ -6,9 +6,10 @@ module Periodical
 
     @stopped_at : Time?
 
-    def initialize(@total : Int32, @index : Int32 = 0, @ok : Int32 = 0, @ko : Int32 = 0, @errors : Set(String) = Set(String).new, @color : Bool = true, @span : Time::Span = Time::Span::Zero)
+    def initialize(@total : Int32, @index : Int32 = 0, @ok : Int32 = 0, @ko : Int32 = 0, @color : Bool = true, @span : Time::Span = Time::Span::Zero)
       @started_at = Time.now
       @count = 0
+      @errors = Hash(String, Int32).new { 0 }
     end
 
     def next
@@ -27,7 +28,9 @@ module Periodical
       @index += 1
       @count += 1
       @ko += 1
-      @errors << (err.message || err.class.name).to_s
+
+      error_name = (err.message || err.class.name).to_s
+      @errors[error_name] += 1
     end
     
     def done!
@@ -39,7 +42,7 @@ module Periodical
     end
 
     def status
-      err = ko > 0 ? "# KO: #{ko}" : ""
+      err = ko > 0 ? "# KO: #{ko} (#{most_error})" : ""
       now = @stopped_at || Time.now
       hms = now.to_s("%H:%M:%S")
       if done?
@@ -68,7 +71,7 @@ module Periodical
         t1  = @started_at.epoch
         t2  = stopped_at.epoch
         io << "%s (OK:%s, KO:%s) [%s +%s](%d - %d)" % [qps, ok, ko, hms, spent_hms, t1, t2]
-        io << " # #{errors.first}" if errors.any?
+        io << " # #{most_error}" if @errors.any?
       end
     end
     
@@ -95,6 +98,18 @@ module Periodical
         raise "not stopped yet"
       end
       @stopped_at.not_nil!
+    end
+
+    def most_error
+      max = 0
+      name = "(not found)"
+      @errors.each do |(key, val)|
+        if max < val
+          name = key
+          max = val
+        end
+      end
+      return "#{name} (#{max})"
     end
 
     private def colorize(msg)

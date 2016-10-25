@@ -79,8 +79,8 @@ class Bench::Program
 
     if stat.errors.any?
       verbose "(ERRORS)"
-      stat.errors.each do |err|
-        verbose "  #{err}".colorize.yellow
+      stat.errors.each do |err, cnt|
+        verbose "  #{err} (#{cnt})".colorize.yellow
       end
     end
   end
