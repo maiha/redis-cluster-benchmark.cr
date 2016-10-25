@@ -48,7 +48,7 @@ class Bench::Program
   private def execute(cmd)
     @client.command(cmd.feed)
   rescue err
-    if @errexit
+    if fatal_error?(err)
       msg = err.to_s
       puts @client.bootstraps.inspect.colorize.red
       puts msg.colorize.red
@@ -56,6 +56,12 @@ class Bench::Program
     else
       raise err
     end
+  end
+
+  private def fatal_error?(err)
+    return true if @errexit
+    return true if err.to_s =~ /ERR invalid password/
+    return false
   end
 
   private def pause_for_next
