@@ -8,7 +8,10 @@ dependencies:
   toml-config:
     github: maiha/toml-config.cr
     version: 0.2.0
-
+  opts:
+    github: maiha/opts.cr
+    version: 0.1.1
+    
 authors:
   - maiha <maiha@wota.jp>
 
