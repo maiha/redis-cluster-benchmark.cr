@@ -10,7 +10,7 @@ Benchmark utils for Redis Cluster that is inspired by `redis-benchmark`.
 
 #### Compile from source
 
-- crystal-0.19.4 ready
+- crystal-0.19.4, 0.20.0 ready
 
 ```shell
 % crystal deps  # first time only
