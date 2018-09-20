@@ -10,10 +10,10 @@ Benchmark utils for Redis Cluster that is inspired by `redis-benchmark`.
 
 #### Compile from source
 
-- crystal-0.19.4, 0.20.0 ready
+- crystal-0.26.1
 
 ```shell
-% crystal deps  # first time only
+% shards update  # first time only
 % make
 % cp bin/redis-cluster-benchmark /usr/local/bin/
 ```

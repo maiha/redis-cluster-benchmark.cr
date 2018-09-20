@@ -6,7 +6,7 @@ module Periodical
 
     @stopped_at : Time?
 
-    def initialize(@total : Int32, @index : Int32 = 0, @ok : Int32 = 0, @ko : Int32 = 0, @color : Bool = true, @span : Time::Span = Time::Span::Zero)
+    def initialize(@total : Int32, @index : Int32 = 0, @ok : Int32 = 0, @ko : Int32 = 0, @color : Bool = true, @span : Time::Span = Time::Span::ZERO)
       @started_at = Time.now
       @count = 0
       @errors = Hash(String, Int32).new { 0 }
